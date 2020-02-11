@@ -1,0 +1,2 @@
+Individual	start	stop
+SGS	136836365	137768012

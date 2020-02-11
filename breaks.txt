@@ -1,0 +1,6 @@
+Individual	internal_start	internal_stop
+NC09	136857158	
+NC09	136873549	
+NC09	136942326	
+NC09	137042866	
+NC41		137656157
