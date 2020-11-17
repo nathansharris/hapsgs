@@ -262,5 +262,9 @@ if __name__ == "__main__":
         plt.savefig(output,dpi = 400)
         plt.show()
 
+        np.savetxt("f"+output.strip("png")+"csv", ex, delimiter=",")
+        np.savetxt("r"+output.strip("png")+"csv", right, delimiter=",")
+        np.savetxt("l"+output.strip("png")+"csv", left, delimiter=",")
+
 
         
