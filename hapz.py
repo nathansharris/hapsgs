@@ -91,7 +91,7 @@ if __name__ == "__main__":
     if len(args) == 0:
         phelp()
     
-    totalargs = ["--help","--interior","--skip","--pink","--regions","--file","--largest"]
+    totalargs = ["--help","--interior","--skip","--pink","--regions","--file","--largest", "--solid"]
     
     for i,arg in enumerate(args):
         if arg not in totalargs and args[i-1] not in totalargs:
@@ -111,6 +111,11 @@ if __name__ == "__main__":
     f = args[argin+1][0]
     argin = np.where(args=="--regions")[0]
     r = args[argin+1][0]
+    try:
+        argin = np.where(args=="--solid")[0]
+        solcol = args[argin+1][0]
+    except:
+        solcol = "blue"
 
     colors = mcolors.TABLEAU_COLORS
 
@@ -124,6 +129,8 @@ if __name__ == "__main__":
         skip = False
     if "--pink" in args:
         coloption = "alpha"
+    elif "--solid" in args:
+        coloption = "solid"
     else:
         coloption = "no"
     if "--largest" in args:
@@ -177,46 +184,71 @@ if __name__ == "__main__":
         rightbreaks = rightbreaks[new]
         leftbreaks = leftbreaks[new]
 
-        #Graph with changing colors
-        for i,person in enumerate(rightbreaks):
-            sharing = len(simple[0])-1
-            a = 1
-            if coloption == "alpha":
-                ourcolor = "magenta"
-            else:
-                ourcolor = list(colors)[sharing]
-            plt.plot([region[0],region[1]],[i,i],color = ourcolor,linewidth = 9,solid_capstyle="butt")
-            start = region[1]
-            for j,pair in enumerate(sorted(list(set(person[person>= 0])))):
-                numbreaking = np.sum(person == pair)
-                if coloption == "alpha":
-                    ourcolor = "magenta"
-                    alpha = 1 - a*(1/(len(simple[0])))
-                else:
-                    ourcolor = list(colors)[sharing]
-                    alpha = 1
-                plt.plot([start,region[1]+pair], [i,i], color = ourcolor,linewidth=9,label = str(sharing),solid_capstyle="butt",alpha =alpha)
-                sharing -= numbreaking
-                a+= numbreaking
-                start = region[1]+pair
+        # table of values we will use
+        right = (rightbreaks + region[1])
+        right = right.astype(float)
+        np.fill_diagonal(right,np.nan)
 
-        for i,person in enumerate(leftbreaks):
-            sharing = len(simple[0])-1
-            a=1
-            start = region[0]
-            for j,pair in enumerate(sorted(list(set(person[person>= 0])))):
-                numbreaking = np.sum(person == pair)
+        left = (region[0] - leftbreaks)
+        left = left.astype(float)
+        np.fill_diagonal(left,np.nan)
+
+        farright = np.nanmax(right, axis = 1)
+        farleft = np.nanmax(left, axis = 1)
+        ex = np.array([farleft, farright]).T
+
+
+        #graphing with solid color
+        if "--solid" in args:
+            for i,row in enumerate(ex):
+                plt.plot([row[0],row[1]], [i,i], color = solcol,linewidth=9,solid_capstyle="butt")
+
+        else:
+            #Graph with changing colors
+            for i,person in enumerate(rightbreaks):
+                sharing = len(simple[0])-1
+                a = 1
                 if coloption == "alpha":
                     ourcolor = "magenta"
-                    alpha = 1 - a*(1/(len(simple[0])))
-                    print(alpha)
+                elif coloption == "solid":
+                    ourcolor = "blue"
                 else:
                     ourcolor = list(colors)[sharing]
-                    alpha = 1
-                plt.plot([region[0]-pair,start], [i,i], color = ourcolor,linewidth=9,label = str(sharing),solid_capstyle="butt",alpha = alpha  )
-                sharing -= numbreaking
-                a += numbreaking 
-                start = region[0]-pair
+                plt.plot([region[0],region[1]],[i,i],color = ourcolor,linewidth = 9,solid_capstyle="butt")
+                start = region[1]
+                for j,pair in enumerate(sorted(list(set(person[person>= 0])))):
+                    numbreaking = np.sum(person == pair)
+                    if coloption == "alpha":
+                        ourcolor = "magenta"
+                        alpha = 1 - a*(1/(len(simple[0])))
+                    elif coloption == "solid":
+                        ourcolor = "blue"
+                        alpha = 1
+                    else:
+                        ourcolor = list(colors)[sharing]
+                        alpha = 1
+                    plt.plot([start,region[1]+pair], [i,i], color = ourcolor,linewidth=9,label = str(sharing),solid_capstyle="butt",alpha =alpha)
+                    sharing -= numbreaking
+                    a+= numbreaking
+                    start = region[1]+pair
+
+            for i,person in enumerate(leftbreaks):
+                sharing = len(simple[0])-1
+                a=1
+                start = region[0]
+                for j,pair in enumerate(sorted(list(set(person[person>= 0])))):
+                    numbreaking = np.sum(person == pair)
+                    if coloption == "alpha":
+                        ourcolor = "magenta"
+                        alpha = 1 - a*(1/(len(simple[0])))
+                        print(alpha)
+                    else:
+                        ourcolor = list(colors)[sharing]
+                        alpha = 1
+                    plt.plot([region[0]-pair,start], [i,i], color = ourcolor,linewidth=9,label = str(sharing),solid_capstyle="butt",alpha = alpha  )
+                    sharing -= numbreaking
+                    a += numbreaking 
+                    start = region[0]-pair
 
         handles, labels = plt.gca().get_legend_handles_labels()
         by_label = dict(zip(labels, handles))
@@ -229,3 +261,6 @@ if __name__ == "__main__":
         #plt.xlabel("Position (bp)")
         plt.savefig(output,dpi = 400)
         plt.show()
+
+
+        
